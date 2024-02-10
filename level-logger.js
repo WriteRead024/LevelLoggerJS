@@ -3,8 +3,8 @@
 // written 11/26/2019
 // significant additions 12/30/2019
 // including channelizability
-//
-// Rich W.
+// and JSDoc style comments
+//// Rich W.
 
 const thisModuleFileName = "level-logger.js";
 const defaultLoggingLevel = -1;
@@ -18,7 +18,12 @@ var moduleVars = {
 }
 
 
-//todo: JSDoc or even TypeScript definitions
+/**
+ * @param {string} argModuleTag module prefix prepended to indicate the origin of the logged message.
+ * @param {function} argOutputRedirect function allowing additional processing of output message.
+ * @param {boolean} argSuppressPrefix if true, suppresses module prefix.
+ * @param {boolean} argChannelizable if true, allows text log output channels instead of level numbers.
+ */
 function getLogger(argModuleTag,
     argOutputRedirect,
     argSuppressPrefix,
@@ -26,12 +31,13 @@ function getLogger(argModuleTag,
     if (!argModuleTag || typeof argModuleTag != 'string') {
         throw new TypeError("Level logger requires module tag string argument value.");
     }
+    let returnlogfunction = null;
     /**
      * @param {string} message Message to output to console.
      * @param {number} level Message severity (zero to eight).
      * 0 - program-ending error
-     * 1 - immediate action required alert
-     * 2 - immediate attention required critical situation
+     * 1 - immediate action required critical situation
+     * 2 - immediate attention required alert
      * 3 - error condition
      * 4 - program state warning
      * 5 - notification message of normal operation
@@ -39,7 +45,6 @@ function getLogger(argModuleTag,
      * 7 - debugging messages
      * 8 - debugging detail messages
      */
-    let returnlogfunction = null;
     var logfunction = function (fMessage,
         fLevel = defaultLoggingLevel,
         fSuppressPrefix = moduleVars.suppress_prefix) {
@@ -159,3 +164,4 @@ function getLogger(argModuleTag,
 };
 
 module.exports = getLogger;
+module.exports.initialLoggingLevel = moduleVars.logging_level;
