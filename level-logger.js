@@ -3,17 +3,23 @@
 // written 11/26/2019
 // Rich W.
 
-const thisModule = "level-logger.js";
+const thisModuleFileName = "level-logger.js";
 const defaultLoggingLevel = -1;
 
-var logging_level = 8;
-var suppress_prefix = false;
-var log = null;
+
+var moduleVars = {
+    logging_level: 7,
+    suppress_prefix: false,
+    llogfunction: null,
+    output_redirect: null,
+}
 
 
-//todo: JSDoc
-function getLogger(argModuleTag, argOutputRedirect, argSuppressPrefix) {
-    suppress_prefix = argSuppressPrefix;
+//todo: JSDoc or even TypeScript definitions
+function getLogger(argModuleTag,
+    argOutputRedirect,
+    argSuppressPrefix,
+    argChannelizable = false) {
     if (!argModuleTag || typeof argModuleTag != 'string') {
         throw new TypeError("Level logger requires module tag string argument value.");
     }
@@ -30,44 +36,123 @@ function getLogger(argModuleTag, argOutputRedirect, argSuppressPrefix) {
      * 7 - debugging messages
      * 8 - debugging detail messages
      */
+    let returnlogfunction = null;
     var logfunction = function (fMessage,
         fLevel = defaultLoggingLevel,
-        suppressPrefix = suppress_prefix) {
-        if (fLevel <= logging_level) {
-            let logmesg = `${argModuleTag} (lvl.${fLevel}): ${fMessage}`;
-            if (suppressPrefix) {
+        fSuppressPrefix = moduleVars.suppress_prefix) {
+        if (fLevel <= moduleVars.logging_level) {
+            let logmesg = null;
+            if (fSuppressPrefix) {
                 logmesg = fMessage;
+            } else {
+                logmesg = `${argModuleTag} (lvl.${fLevel}): ${fMessage}`;
             }
-            let logtoconsole = true;
-            if (argOutputRedirect) {
-                logtoconsole = argOutputRedirect(logmesg);
+            let logtoconsole = !moduleVars.output_redirect;
+            if (!logtoconsole) {
+                logtoconsole = moduleVars.output_redirect(logmesg);
             }
             if (logtoconsole) {
                 console.log(logmesg);
             }
         }
     };
-    logfunction.setSuppressPrefix = function (value) {
-        if (typeof value !== 'boolean') {
-            if (!log) {
-                log = getLogger(thisModule);
+    var channelizablelogfunction = function (fMessage,
+        fLevel = defaultLoggingLevel,
+        fSuppressPrefix = moduleVars.suppress_prefix) {
+        let logmesg = null;
+        if (typeof fLevel == 'string') {
+            if (fSuppressPrefix) {
+                logmesg = fMessage
+            } else {
+                logmesg = `${argModuleTag} ${fLevel} chnl.: ${fMessage}`;
             }
-            log("suppress prefix value must be a boolean.", 3);
         }
-        suppress_prefix = value;
-    };
-    logfunction.setLoggingLevel = function (argLevel) {
-        logging_level = argLevel;
-        if (!log) {
-            log = getLogger(thisModule);
+        if (fLevel <= moduleVars.logging_level) {
+            if (fSuppressPrefix) {
+                logmesg = fMessage;
+            } else {
+                logmesg = `${argModuleTag} (lvl.${fLevel}): ${fMessage}`;
+            }
         }
-        log(`setting new logging level to ${argLevel}`, 5);
-        return true;
+        let logtoconsole = !moduleVars.output_redirect;
+        if (!logtoconsole) {
+            logtoconsole = moduleVars.output_redirect(logmesg);
+        }
+        if (logtoconsole) {
+            console.log(logmesg);
+        }
     };
-    logfunction.getLoggingLevel = function () {
-        return logging_level;
+    if (argChannelizable) {
+        returnlogfunction = channelizablelogfunction;
+    } else {
+        returnlogfunction = logfunction;
+    }
+    returnlogfunction.setSuppressPrefix = function (value) {
+        if (typeof value !== 'boolean') {
+            if (!moduleVars.llogfunction) {
+                moduleVars.llogfunction = getLogger(thisModuleFileName);
+            }
+            llogfunction("suppress prefix value must be a boolean.", 3);
+        }
+        moduleVars.suppress_prefix = value;
     };
-    return logfunction;
+    returnlogfunction.setLoggingLevel = function (argLevel) {
+        const argvalue = parseInt(argLevel);
+        let logmesg = null;
+        let logmesglevel = 5
+        let returnval = true;
+        if (Number.isInteger(argvalue)) {
+            moduleVars.logging_level = argvalue;
+            if (moduleVars.logging_level >= 5) {
+                logmesg = `logging level set to ${argvalue}`;
+            }
+        } else {
+            logmesg = `setLoggingLevel parameter should be an integer`;
+            logmesglevel = 3;
+            returnval = false;
+        }
+        if (logmesg) {
+            if (!moduleVars.llogfunction) {
+                moduleVars.llogfunction = getLogger(thisModuleFileName);
+            }
+            moduleVars.llogfunction(logmesg, logmesglevel);
+        }
+        return returnval;
+    };
+    returnlogfunction.getLoggingLevel = function () {
+        return moduleVars.logging_level;
+    };
+    returnlogfunction.setRedirectFunction = function (argRedirectFunction) {
+        let logmesg = null;
+        let logmesglevel = 5
+        let returnval = true;
+        if (typeof argRedirectFunction == 'function') {
+            moduleVars.output_redirect = argRedirectFunction;
+            if (moduleVars.logging_level >= 5) {
+                logmesg = `redirect output function changed`;
+            }
+        } else {
+            logmesg = `setRedirectFunction parameter should be a function`;
+            logmesglevel = 3;
+            returnval = false;
+        }
+        if (logmesg) {
+            if (!moduleVars.llogfunction) {
+                moduleVars.llogfunction = getLogger(thisModuleFileName);
+            }
+            moduleVars.llogfunction(logmesg, logmesglevel);
+        }
+        return returnval;
+    };
+    returnlogfunction.defaultLoggingLevel = defaultLoggingLevel;
+    //
+    if (argSuppressPrefix || argSuppressPrefix === false) {
+        returnlogfunction.setSuppressPrefix(argSuppressPrefix);
+    }
+    if (argOutputRedirect) {
+        returnlogfunction.setRedirectFunction(argOutputRedirect);
+    }
+    return returnlogfunction;
 };
 
 module.exports = getLogger;
