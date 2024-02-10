@@ -4,7 +4,11 @@
 // significant additions 12/30/2019
 // including channelizability
 // and JSDoc style comments
-//// Rich W.
+// added blankNewLine function
+// and setModuleLoggingLevel 1/17/2022
+// Rich W.
+
+const os = require('os');
 
 const thisModuleFileName = "level-logger.js";
 const defaultLoggingLevel = -1;
@@ -95,6 +99,11 @@ function getLogger(argModuleTag,
     } else {
         returnlogfunction = logfunction;
     }
+    returnlogfunction.blankNewLine = function(fLevel = defaultLoggingLevel) {
+        if (fLevel <= moduleVars.logging_level) {
+            console.log(os.EOL);
+        }
+    },
     returnlogfunction.setSuppressPrefix = function (value) {
         if (typeof value !== 'boolean') {
             if (!moduleVars.llogfunction) {
@@ -162,6 +171,16 @@ function getLogger(argModuleTag,
     }
     return returnlogfunction;
 };
+
+getLogger.setModuleLoggingLevel = function setModuleLoggingLevelFunction(argNewLevel, argLogNewLevel) {
+    if (typeof argNewLevel != 'number') {
+        console.log("Incorrect sMLL argument type.");
+    }
+    moduleVars.logging_level = argNewLevel;
+    if (argLogNewLevel === true) {
+        console.log(`New level logger logging level set to '${moduleVars.logging_level}'.`);
+    }
+}
 
 module.exports = getLogger;
 module.exports.initialLoggingLevel = moduleVars.logging_level;
