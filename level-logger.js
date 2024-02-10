@@ -1,6 +1,9 @@
 'use strict';
 
 // written 11/26/2019
+// significant additions 12/30/2019
+// including channelizability
+//
 // Rich W.
 
 const thisModuleFileName = "level-logger.js";
