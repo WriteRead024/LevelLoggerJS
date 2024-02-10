@@ -1,12 +1,13 @@
 'use strict';
 
-// written 11/26/2019
+// written prior to 11/26/2019
 // significant additions 12/30/2019
 // including channelizability
 // and JSDoc style comments
 // added blankNewLine function
 // and setModuleLoggingLevel 1/17/2022
 // Rich W.
+// license MSL.l
 
 const os = require('os');
 
