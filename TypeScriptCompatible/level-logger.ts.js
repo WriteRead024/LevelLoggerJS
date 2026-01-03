@@ -14,7 +14,7 @@
 
 import os from 'os';
 
-const thisModuleFileName = "level-logger.t.js";
+const thisModuleFileName = "level-logger.ts.js";
 const defaultLoggingLevel = -1;
 
 
